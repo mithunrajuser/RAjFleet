@@ -1,0 +1,211 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Admin",
+      "description": "System administrator profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "OPS_ADMIN", "SUPPORT_ADMIN"] },
+        "permissions": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "SUSPENDED"] },
+        "avatar": { "type": "string" },
+        "lastLogin": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "role", "status"]
+    },
+    "Rider": {
+      "title": "Rider",
+      "description": "Delivery fleet partner",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "avatar": { "type": "string" },
+        "status": { "type": "string", "enum": ["ONLINE", "OFFLINE", "BUSY", "IDLE", "SUSPENDED"] },
+        "verificationStatus": { "type": "string", "enum": ["PENDING", "VERIFIED", "REJECTED"] },
+        "rating": { "type": "number" },
+        "walletBalance": { "type": "number" },
+        "totalEarnings": { "type": "number" },
+        "activeOrderId": { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "heading": { "type": "number" },
+            "lastUpdated": { "type": "string", "format": "date-time" }
+          }
+        },
+        "vehicle": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "number": { "type": "string" },
+            "model": { "type": "string" }
+          }
+        },
+        "documents": {
+          "type": "object",
+          "properties": {
+            "kyc": { "type": "string", "enum": ["PENDING", "VALID", "INVALID"] },
+            "license": { "type": "string", "enum": ["PENDING", "VALID", "INVALID"] },
+            "insurance": { "type": "string", "enum": ["PENDING", "VALID", "INVALID"] }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "status", "verificationStatus"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Merchant partner",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "ownerEmail": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "image": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["OPEN", "CLOSED", "BUSY", "INACTIVE"] },
+        "rating": { "type": "number" },
+        "totalOrders": { "type": "number" },
+        "verified": { "type": "boolean" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "status"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "User profile for ordering",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "avatar": { "type": "string" },
+        "walletBalance": { "type": "number" },
+        "addresses": { "type": "array", "items": { "type": "object" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A delivery service request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "storeId": { "type": "string" },
+        "storeName": { "type": "string" },
+        "riderId": { "type": "string" },
+        "riderName": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "ACCEPTED", "PICKED", "IN_TRANSIT", "DELIVERED", "CANCELLED", "EMERGENCY"] },
+        "type": { "type": "string", "enum": ["REGULAR", "PRIME", "EMERGENCY"] },
+        "amount": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "items": { "type": "array", "items": { "type": "object" } },
+        "pickupLocation": { "type": "object" },
+        "deliveryLocation": { "type": "object" },
+        "trackingHistory": { "type": "array", "items": { "type": "object" } },
+        "paymentStatus": { "type": "string", "enum": ["PENDING", "PAID", "FAILED", "REFUNDED"] },
+        "eta": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "customerId", "status", "type", "amount", "createdAt"]
+    },
+    "WithdrawRequest": {
+      "title": "Withdraw Request",
+      "description": "Rider payout request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "riderId": { "type": "string" },
+        "riderName": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "COMPLETED"] },
+        "bankDetails": { "type": "object" },
+        "adminId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "SOSAlert": {
+      "title": "SOS Alert",
+      "description": "Emergency signal from a rider",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "riderId": { "type": "string" },
+        "riderName": { "type": "string" },
+        "orderId": { "type": "string" },
+        "location": { "type": "object" },
+        "status": { "type": "string", "enum": ["ACTIVE", "RESOLVED", "FALSE_ALARM"] },
+        "resolvedBy": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Direct communication message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "text": { "type": "string" },
+        "type": { "type": "string", "enum": ["sent", "received"] },
+        "read": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Analytics": {
+      "title": "Analytics",
+      "description": "Daily system metrics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "revenue": { "type": "number" },
+        "ordersCount": { "type": "number" },
+        "ridersActive": { "type": "number" },
+        "averageDeliveryTime": { "type": "number" },
+        "customerGrowth": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "admins": { "schema": "Admin", "description": "System administrators" },
+    "riders": { "schema": "Rider", "description": "Delivery partners" },
+    "stores": { "schema": "Store", "description": "Merchant locations" },
+    "customers": { "schema": "Customer", "description": "App users" },
+    "orders": { "schema": "Order", "description": "Service requests" },
+    "withdrawals": { "schema": "WithdrawRequest", "description": "Payout pipeline" },
+    "sos_alerts": { "schema": "SOSAlert", "description": "Emergency signals" },
+    "chats": { "schema": "ChatMessage", "description": "Support and ops comms" },
+    "analytics_daily": { "schema": "Analytics", "description": "Daily performance metrics" },
+    "users": { "schema": "object", "description": "Global user profiles" },
+    "audit_logs": { "schema": "object", "description": "System activity" }
+  }
+}

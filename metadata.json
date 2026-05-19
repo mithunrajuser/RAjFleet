@@ -1,0 +1,12 @@
+{
+  "name": "RAjFleet Command Core",
+  "description": "Premium Cyberpunk-themed enterprise logistics & fleet management ecosystem. Features high-density real-time dashboards, neural rider tracking, and ultra-modern SaaS command interfaces.",
+  "requestFramePermissions": [
+    "geolocation",
+    "notifications",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

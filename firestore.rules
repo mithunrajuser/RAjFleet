@@ -1,0 +1,140 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'mithunkumar2072003@gmail.com'
+      );
+    }
+
+    function isRider() {
+      return isSignedIn() && exists(/databases/$(database)/documents/riders/$(request.auth.uid));
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isAdmin() || isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'updatedAt']);
+      allow delete: if isAdmin();
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow create: if isOwner(adminId) && request.auth.token.email == 'mithunkumar2072003@gmail.com';
+      allow update, delete: if isAdmin();
+    }
+
+    // Riders Collection
+    match /riders/{riderId} {
+      allow read: if isAdmin() || isOwner(riderId);
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (
+        isOwner(riderId) && 
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'location', 'activeOrderId', 'heading'])
+      );
+    }
+
+    // Stores Collection
+    match /stores/{storeId} {
+      allow read: if true; // Publicly readable for the app
+      allow write: if isAdmin();
+    }
+
+    // Customers Collection
+    match /customers/{customerId} {
+      allow read: if isAdmin() || isOwner(customerId);
+      allow write: if isAdmin() || isOwner(customerId);
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      allow read: if isAdmin() || 
+                    isOwner(existing().customerId) || 
+                    isOwner(existing().riderId);
+      allow list: if isAdmin() || 
+                    (isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.riderId == request.auth.uid));
+      
+      allow create: if isAdmin() || isSignedIn(); // Simplified for now, in reality customer creates
+      
+      allow update: if isAdmin() || (
+        isSignedIn() && (
+          // Rider updating status
+          (isOwner(existing().riderId) && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt', 'trackingHistory'])) ||
+          // Customer cancelling own order
+          (isOwner(existing().customerId) && incoming().status == 'CANCELLED' && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']))
+        )
+      );
+    }
+
+    // Withdrawals
+    match /withdrawals/{requestId} {
+      allow read: if isAdmin() || isOwner(existing().riderId);
+      allow create: if isRider() && incoming().riderId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    // SOS Alerts
+    match /sos_alerts/{alertId} {
+      allow read: if isAdmin();
+      allow create: if isRider() && incoming().riderId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    // Chats
+    match /chats/{chatId} {
+      allow read: if isAdmin() || isOwner(existing().senderId) || isOwner(existing().receiverId);
+      allow create: if isSignedIn() && (incoming().senderId == request.auth.uid || isAdmin());
+    }
+
+    // Analytics (Daily)
+    match /analytics_daily/{dayId} {
+      allow read: if isAdmin();
+      allow write: if false; // System generated (Cloud Functions or Admin SDK)
+    }
+
+    // Audit Logs
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn(); // Allow logging actions
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}
