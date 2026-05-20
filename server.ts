@@ -1,16 +1,12 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { fileURLToPath } from "url";
 import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 import dotenv from "dotenv";
 import admin from 'firebase-admin';
 import { readFileSync } from "fs";
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Load Firebase Config
 const firebaseConfig = JSON.parse(readFileSync(path.join(process.cwd(), "firebase-applet-config.json"), "utf8"));
