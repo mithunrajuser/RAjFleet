@@ -35,7 +35,7 @@ if (!admin.apps.length) {
 }
 
 const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
-  ? admin.firestore(app).namedDatabase(firebaseConfig.firestoreDatabaseId)
+  ? admin.firestore(app, firebaseConfig.firestoreDatabaseId)
   : admin.firestore(app);
 
 async function startServer() {
