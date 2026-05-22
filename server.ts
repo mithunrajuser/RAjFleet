@@ -4,23 +4,39 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 import dotenv from "dotenv";
 import admin from 'firebase-admin';
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 
 dotenv.config();
 
 // Load Firebase Config
-const firebaseConfig = JSON.parse(readFileSync(path.join(process.cwd(), "firebase-applet-config.json"), "utf8"));
+let firebaseConfig;
+try {
+  const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+  if (existsSync(configPath)) {
+    firebaseConfig = JSON.parse(readFileSync(configPath, "utf8"));
+  } else {
+    console.error("firebase-applet-config.json not found!");
+    process.exit(1);
+  }
+} catch (e) {
+  console.error("Failed to load firebase config:", e);
+  process.exit(1);
+}
 
 // Initialize Admin SDK (Bypasses rules)
+let app;
 if (!admin.apps.length) {
-  admin.initializeApp({
+  app = admin.initializeApp({
     projectId: firebaseConfig.projectId,
     databaseURL: `https://${firebaseConfig.projectId}.firebaseio.com`
   });
+} else {
+  app = admin.app();
 }
+
 const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
-  ? admin.firestore(firebaseConfig.firestoreDatabaseId)
-  : admin.firestore();
+  ? admin.firestore(app).namedDatabase(firebaseConfig.firestoreDatabaseId)
+  : admin.firestore(app);
 
 async function startServer() {
   const app = express();
